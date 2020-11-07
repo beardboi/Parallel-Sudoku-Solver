@@ -1,1 +1,16 @@
-/.gradle
+# Gradle
+
+.gradle
+/build/
+
+# .idea
+
+.idea/workspace.xml
+.idea/vcs.xml
+.idea/checkstyleidea-libs
+.idea/codeStyles
+.idea/modules
+
+# IntelliJ
+
+/out/
