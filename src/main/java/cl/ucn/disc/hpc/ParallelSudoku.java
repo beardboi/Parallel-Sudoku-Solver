@@ -1,9 +1,10 @@
 package cl.ucn.disc.hpc;
 
-public class ParallelSudoku {
+public class ParallelSudoku implements Runnable {
+
 
     // The board (final?)
-    public Board board;
+    public final Board board;
 
     /**
      * The constructor
@@ -14,64 +15,54 @@ public class ParallelSudoku {
         this.board = board;
     }
 
-    /*
-     *
-     */
-    public boolean solve() {
-        // TODO: The program should be equally working with sudoku boards bigger than 9x9
-        return solveRows(0, 8);
-    }
+    public boolean solve(Board board, int row, int col) {
 
-    /**
-     * This function checks for every value
-     *
-     * @param initialRow The initial row to check
-     * @param finalRow   The final row to check
-     * @return True if the board is solved
-     */
-    public boolean solveRows(int initialRow, int finalRow) {
-        int row = -1;
-        int col = -1;
-        boolean solved = true;
-
-        for (int r = initialRow; r <= finalRow; r++) {
-            for (int c = 0; c <= 8; c++) {
-                if (board.isEmptyCell(r, c)) {
-                    row = r;
-                    col = c;
-                    solved = false;
-                    break;
-                }
-            }
-
-            if (!solved) {
-                break;
-            }
-
-        }
-        // 1 If the board is solved
-        if (solved) {
+        // Check if the board is completed
+        if (Board.isCompleted(board)) {
             return true;
         }
 
-        // Check from 1 to 9 if value satisfy the constraint
-        for (int value = 1; value <= 9; value++) {
-            if (board.isValid(row, col, value)) {
-                // Insert the current value
-                board.insert(row, col, value);
+        // If the col reached to the end
+        if (col == 9) {
+            row++;
+            col = 0;
+        }
 
-                if (solveRows(initialRow, finalRow)) {
-                    // Leads to a solution
+        // Check if the cell is empty
+        if (!board.isEmptyCell(row, col))
+            return solve(board, row, col + 1);
+
+        // Check from 1 to 9 if the value
+        for (int num = 1; num <= 9; num++) {
+            // Check validity
+            if (board.isValid(row, col, num)) {
+
+                // Given that the value is valid, try with it
+                board.insertValue(row, col, num);
+
+                // Using backtracking, see if the value leads to a solution
+                if (solve(board, row, col + 1))
                     return true;
-
-                } else {
-                    // Try with another value
-                    board.delete(row, col);
-                }
             }
+
+            // Try with another number, so make the cell empty
+            board.undoValue(row, col);
         }
 
         return false;
+    }
+
+    /**
+     * This function will be execute by the instance of the ExecutorService.
+     */
+    @Override
+    public void run() {
+        // Try to solve the board and tell if you find a solution
+        if (solve(board, 0, 0)) {
+            System.out.println("Solution was found");
+        } else {
+            System.out.println("Solution was not found");
+        }
     }
 
 }
