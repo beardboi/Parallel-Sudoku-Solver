@@ -13,15 +13,17 @@ public class InputFile {
 
     /**
      * The constructor
-     * @param file
+     *
+     * @param file The file .txt that contains the sudoku board.
      */
     public InputFile(File file) {
         this.file = file;
     }
 
     /**
-     * This function takes the file passed by the constructor and convert
-     * @return
+     * This function takes the file passed by the constructor and returned it as an 2d array.
+     *
+     * @return The array NxN that contains the sudoku board
      */
     public int[][] readBoard() {
 
@@ -60,7 +62,6 @@ public class InputFile {
         }
 
         return null;
-
     }
 
 }
