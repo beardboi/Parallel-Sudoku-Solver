@@ -2,21 +2,48 @@ package cl.ucn.disc.hpc;
 
 public class Board {
 
-    // The length of the board
-    private final int size;
-    // The initial board
-    private int[][] initialBoard;
-    // The board that will be modified while the sudoku is being solved
+    // The board that will be solved
     private int[][] board;
+    // The initial/original board
+    private final int[][] initialBoard;
+    // The size of the number
+    private final int size;
 
     /**
      * The constructor
      *
-     * @param initialBoard The original/initial board
+     * @param inputBoard The sudoku board represented as an 2d array
      */
-    public Board(int[][] initialBoard) {
+    public Board(int[][] inputBoard) {
+        this.initialBoard = inputBoard;
         this.board = initialBoard;
-        this.size = board.length;
+        this.size = initialBoard.length;
+    }
+
+    /**
+     * This function checks if the board is completed
+     *
+     * @param board The sudoku board
+     * @return True if the board is completed, false in the other case
+     */
+    public static boolean isCompleted(Board board) {
+        // Accumulator of empty cells
+        int acc = 0;
+
+        // Run over all the board
+        for (int i = 0; i < board.getSize(); i++) {
+            for (int j = 0; j < board.getSize(); j++) {
+                if (board.isEmptyCell(i, j)) {
+                    acc++;
+                }
+            }
+        }
+        // If there is no empty cell, the board is solved
+        if (acc == 0) {
+            return true;
+        }
+        // Incomplete board
+        return false;
     }
 
     /**
@@ -27,81 +54,31 @@ public class Board {
      * @return True if the cell is empty, false in the other case
      */
     public boolean isEmptyCell(int row, int column) {
-        // If a position of the grid contains a 0, it means that is a empty cell
-        if (this.board[row][column] == 0) {
+        if (board[row][column] == 0) {
             return true;
         }
-        // The cell is empty
+
         return false;
     }
 
     /**
-     * This function change the value of a cell given it position.
+     * This function return the length of the board
+     */
+    public int getSize() {
+        return size;
+    }
+
+    /**
+     * This function checks the row from a board to make sure that the value to put is a valid one.
      *
      * @param row   The row from the board cell
-     * @param col   The column from the board cell
      * @param value The value to insert
+     * @return True if the value doesn't exist in the row, false in the other case
      */
-    public void insert(int row, int col, int value) {
-        // TODO: check if the value is valid in this same method?
-        this.board[row][col] = value;
-    }
+    public boolean checkRow(int row, int value) {
 
-    /**
-     * This function makes the specific board position an empty cell
-     *
-     * @param row The row from the board cell
-     * @param col The col from the board cell
-     */
-    public void delete(int row, int col) {
-        this.board[row][col] = 0;
-    }
-
-    /**
-     * This function reset the board to the initial board
-     */
-    public void rollback() {
-        this.board = initialBoard;
-    }
-
-
-    /**
-     * This function return the
-     *
-     * @param row       The row from the board cell
-     * @param col       The column from the board cell
-     * @param cellValue The value to insert
-     * @return TRUE for a valid insertion, FALSE in the other case.
-     */
-    public boolean isValid(int row, int col, int cellValue) {
-        // If any of the functions to check returns a true, it means that the insertion goes against the constraints
-        // Constraint 1: A column can't contain the same value
-        if (checkColumn(col, cellValue)) {
-            return false;
-        }
-        // Constraint 2: A row can't contain the same value
-        if (checkRow(row, cellValue)) {
-            return false;
-        }
-        // Constrain 3: A subgrid can't contain the same value
-        if (checkSubgrid(row, col, cellValue)) {
-            return false;
-        }
-        // To this point, the insertion is valid
-        return true;
-    }
-
-    /**
-     * This function checks the column from a board to make sure that the value to put is a valid one.
-     *
-     * @param column    The column from the board cell
-     * @param cellValue The value to insert
-     * @return True if the value doesn't exist in the column, false in the other case
-     */
-    public boolean checkColumn(int column, int cellValue) {
-        // Check the rows
-        for (int row = 0; row < size; row++) {
-            if (this.board[row][column] == cellValue) {
+        for (int col = 0; col < size; col++) {
+            if (board[row][col] == value) {
                 return true;
             }
         }
@@ -110,15 +87,16 @@ public class Board {
     }
 
     /**
-     * This function checks the row from a board to make sure that the value to put is a valid one.
+     * This function checks the column from a board to make sure that the value to put is a valid one.
      *
-     * @param row       The row from the board cell
-     * @param cellValue The value to insert
-     * @return True if the value doesn't exist in the row, false in the other case
+     * @param col   The column from the board cell
+     * @param value The value to insert
+     * @return True if the value doesn't exist in the column, false in the other case
      */
-    public boolean checkRow(int row, int cellValue) {
-        for (int col = 0; col < size; col++) {
-            if (this.board[row][col] == cellValue) {
+    public boolean checkColumn(int col, int value) {
+
+        for (int row = 0; row < size; row++) {
+            if (board[row][col] == value) {
                 return true;
             }
         }
@@ -129,44 +107,108 @@ public class Board {
     /**
      * This function checks the subgrid from a board to make sure that the value to put is a valid one.
      *
-     * @param column    The column from the board cell
-     * @param row       The row from the board cell
-     * @param cellValue The number that will be insert in the cell
+     * @param col   The column from the board cell
+     * @param row   The row from the board cell
+     * @param value The number that will be insert in the cell
      * @return True if the value doesn't exist in the subgrid, false in the other case
      */
-    public boolean checkSubgrid(int row, int column, int cellValue) {
+    public boolean checkSubGrid(int row, int col, int value) {
+        // TODO: Fix this to solve calculate NxN boards
+        int subgridRow = (row / 3) * 3;
+        int subgridCol = (col / 3) * 3;
 
-        int subGridRow = row - row % 3;
-        int subGridCol = column - column % 3;
-
-        for (int i = subGridRow; i < subGridRow + 3; i++) {
-            for (int j = subGridCol; j < subGridCol + 3; j++) {
-
-                if (this.board[i][j] == cellValue) {
+        for (int i = 0; i <= 2; i++) {
+            for (int j = 0; j <= 2; j++) {
+                if (board[subgridRow + i][subgridCol + j] == value) {
                     return true;
                 }
-
             }
         }
-
         return false;
+    }
+
+    /**
+     * This function check the validity of a movement
+     *
+     * @param row   The row from the board cell
+     * @param col   The column from the board cell
+     * @param value The value to insert
+     * @return TRUE for a valid insertion, FALSE in the other case.
+     */
+    public boolean isValid(int row, int col, int value) {
+
+        if (checkRow(row, value)) {
+            return false;
+        }
+
+        if (checkColumn(col, value)) {
+            return false;
+        }
+
+        if (checkSubGrid(row, col, value)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This function change the value of a cell given it position.
+     *
+     * @param row   The row from the board cell
+     * @param col   The column from the board cell
+     * @param value The value to insert
+     */
+    public void insertValue(int row, int col, int value) {
+
+        board[row][col] = value;
+
+    }
+
+    /**
+     * This function makes the specific board position an empty cell
+     *
+     * @param row The row from the board cell
+     * @param col The col from the board cell
+     */
+    public void undoValue(int row, int col) {
+        board[row][col] = 0;
+    }
+
+    /**
+     * This function reset the board to the initial board
+     */
+    public void resetBoard() {
+        this.board = initialBoard;
     }
 
     /**
      * This function prints the board given it a format
      */
     public void printBoard() {
-        // TODO: Make more "readable" the format
-        System.out.println("------------------");
-        for (int[] row : this.board) {
-            for (int col = 0; col < size; col++) {
-                System.out.print(row[col] + " ");
+        // count for the rows
+        int countRow = 0;
+
+        System.out.println("/-----------------------------\\");
+        for (int[] row : board) {
+            // count for the columns
+            int countCol = 0;
+
+            System.out.print("|");
+            for (int value : row) {
+                System.out.print(" " + value + " ");
+                if (countCol == 2 || countCol == 5 || countCol == 8) {
+                    System.out.print("|");
+                }
+                countCol++;
             }
 
-            System.out.print("\n");
+            System.out.println();
+            if (countRow == 2 || countRow == 5) {
+                System.out.println("|---------+---------+---------|");
+            }
+            countRow++;
         }
-
-        System.out.println("------------------");
+        System.out.println("\\-----------------------------/");
     }
-
 }
